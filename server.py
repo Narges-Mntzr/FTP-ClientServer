@@ -37,8 +37,9 @@ class Server(Thread):
         self.serverSock.bind((HOST, 2020)) #TODO: randomize
         self.serverSock.listen(5)
         addr, port = self.serverSock.getsockname( )
-        self.sendCommand('227 Entering Passive Mode (%s,%u,%u).\r\n' %
+        cmd = ('227 Entering Passive Mode (%s,%u,%u).\r\n' %
                 (','.join(addr.split('.')), port>>8&0xFF, port&0xFF))
+        self.comSock.send(cmd.encode('utf-8'))
 
 
 def main():
