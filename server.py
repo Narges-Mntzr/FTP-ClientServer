@@ -51,5 +51,5 @@ def main():
         S = Server(connection,_address)
         S.start()
 
-if __name__ == "__main__":
-    main()
+
+main()
