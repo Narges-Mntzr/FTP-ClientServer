@@ -34,7 +34,7 @@ class Server(Thread):
     def PASV(self):
         self.serverSock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.serverSock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        self.serverSock.bind((HOST, 2020)) #TODO: randomize
+        self.serverSock.bind((HOST, 2020)) 
         self.serverSock.listen(5)
         addr, port = self.serverSock.getsockname( )
         cmd = ('227 Entering Passive Mode (%s,%u,%u).\r\n' %
