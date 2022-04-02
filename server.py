@@ -1,13 +1,14 @@
 import socket
-import threading
+from threading import Thread 
 import os
 import time
 
 HOST = '127.0.0.1'
 PORT = 2021 #command port
 
-class Server(threading.Thread):
+class Server(Thread):
     def __init__(self,comSock,address):
+        Thread.__init__(self)
         self.comSock = comSock #command channel
         self.address = address
 
