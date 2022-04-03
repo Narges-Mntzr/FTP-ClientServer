@@ -1,5 +1,8 @@
 from socket import *
 
+HOST = '127.0.0.1'
+PORT = 2121
+
 
 class FTPclient:
     def __init__(self, address, port):
@@ -21,7 +24,7 @@ class FTPclient:
         return sock
 
     def start(self):
-        # try:
+        try:
             while True:
                 self.show_commands()
                 commandStr = input('Enter command: ')
@@ -37,10 +40,10 @@ class FTPclient:
                     self.download_file(commandList[1], commandStr)
                 else:
                     self.sock.send(commandStr.encode())
-                    data = self.sock.recv(1024)
-                    print(data)
-        # except Exception, e:
-            # print str(e)
+                    data = self.sock.recv(2048).decode()
+                    print(data,"\n\n")
+        except Exception as e:
+             print(f'{e} recieved.')
 
     def show_commands(self):
         print('''Call one of the following functions:
@@ -59,14 +62,15 @@ class FTPclient:
         f = open(filename, 'w')
 
         self.sock.send(commandStr)
-        portnum = self.sock.recv(1024)
+        portnum = self.sock.recv(2048)
 
         try:
             datasock = self.create_connection(self.address, portnum)
-            
+
             while True:
-                download = datasock.recv(1024)
-                if not download: break
+                download = datasock.recv(2048)
+                if not download:
+                    break
                 f.write(download)
             f.close()
             datasock.close()
@@ -81,5 +85,5 @@ class FTPclient:
         quit()
 
 
-ftpClient = FTPclient("127.0.0.1", 2021)
+ftpClient = FTPclient(HOST, PORT)
 ftpClient.start()
