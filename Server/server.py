@@ -49,9 +49,22 @@ class Server(Thread):
 
     def run_commands(self, command, argument):
         if (command == 'PWD'):
-            return self.cwd
+            return "\t"+self.cwd
+        elif command == 'LIST':
+            out = ""
+            total_size = 0
+            ls = os.listdir(self.firstLocation+self.cwd)
+            for file in ls:
+                total_size += os.path.getsize(self.firstLocation+self.cwd+file)
+                # print(file,":",os.path.getsize(self.firstLocation+self.cwd+file))
 
+                if os.path.isdir(self.firstLocation+self.cwd+file):
+                    out += ("\t> " + file + "\n")
+                else:
+                    out += ("\t" + file + "\n")
 
+            out += ("\tTotal size: " + str(total_size) + "\n")
+            return out
     # Commands -----------
 
     def PASV(self):
