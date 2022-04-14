@@ -41,18 +41,22 @@ class FTPclient:
                 else:
                     self.sock.send(commandStr.encode())
                     data = self.sock.recv(2048).decode()
-                    print(data,"\n\n")
+                    print(data, "\n\n")
         except Exception as e:
-             print(f'{e} recieved.')
+            print(f'{e} recieved.')
 
     def show_commands(self):
-        print('''Call one of the following functions:
+        print('''    -------------------------------------------------
+    -------------------------------------------------
+        Call one of the following functions:
         1.HELP               : Show this commands
         2.LIST               : List files
         3.PWD                : Show current dir
         4.CD dir_name        : Change directory
         5.DWLD dir_name      : Download file
         6.QUIT               : Exit
+    --------------------------------------------------
+    --------------------------------------------------
          ''')
 
     # don't test

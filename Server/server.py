@@ -45,14 +45,14 @@ class Server(Thread):
 
     def update_cwd(self):
         self.cwd = os.getcwd()
-        self.cwd = self.cwd.replace(self.firstLocation, "/")
+        self.cwd = self.cwd.replace(self.firstLocation, "")
+        self.cwd += "/"
 
     def run_commands(self, command, argument):
         if command == 'PWD':
             return "\t"+self.cwd
-        elif  command == 'CD':
-            os.chdir(self.firstLocation+'/'+argument[0])
-            self.cwd = os.getcwd()
+        elif command == 'CD':
+            os.chdir(self.firstLocation+self.cwd+argument[0])
             self.update_cwd()
             return "\t"+self.cwd
         elif command == 'LIST':
