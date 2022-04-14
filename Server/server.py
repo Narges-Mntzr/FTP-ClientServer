@@ -48,7 +48,12 @@ class Server(Thread):
         self.cwd = self.cwd.replace(self.firstLocation, "/")
 
     def run_commands(self, command, argument):
-        if (command == 'PWD'):
+        if command == 'PWD':
+            return "\t"+self.cwd
+        elif  command == 'CD':
+            os.chdir(self.firstLocation+'/'+argument[0])
+            self.cwd = os.getcwd()
+            self.update_cwd()
             return "\t"+self.cwd
         elif command == 'LIST':
             out = ""
@@ -56,8 +61,6 @@ class Server(Thread):
             ls = os.listdir(self.firstLocation+self.cwd)
             for file in ls:
                 total_size += os.path.getsize(self.firstLocation+self.cwd+file)
-                # print(file,":",os.path.getsize(self.firstLocation+self.cwd+file))
-
                 if os.path.isdir(self.firstLocation+self.cwd+file):
                     out += ("\t> " + file + "\n")
                 else:
