@@ -65,11 +65,13 @@ class FTPclient:
 
         f = open(filename, 'w')
 
-        self.sock.send(commandStr)
-        portnum = self.sock.recv(2048)
+        self.sock.send(commandStr.encode())
+        portnum = self.sock.recv(2048).decode()
+        print(portnum)
 
         try:
-            datasock = self.create_connection(self.address, portnum)
+            datasock = self.create_connection(self.address, int(portnum))
+            print("Hello Shirin")
 
             while True:
                 download = datasock.recv(2048)

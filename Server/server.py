@@ -2,6 +2,7 @@ import socket
 from threading import Thread
 import os
 import time
+import random
 
 HOST = '127.0.0.1'
 PORT = 2121  # command port
@@ -68,17 +69,21 @@ class Server(Thread):
 
             out += ("\tTotal size: " + str(total_size) + "\n")
             return out
+        elif command == 'DWLD':
+            self.PASV()
     # Commands -----------
 
     def PASV(self):
-        self.serverSock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.serverSock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        self.serverSock.bind((HOST, 2020))
-        self.serverSock.listen(5)
-        addr, port = self.serverSock.getsockname()
-        cmd = ('227 Entering Passive Mode (%s,%u,%u).\r\n' %
-               (','.join(addr.split('.')), port >> 8 & 0xFF, port & 0xFF))
-        self.comSock.send(cmd.encode('utf-8'))
+        dataPort = random.randint(3000, 50000)
+        self.comSock.send(str(dataPort).encode('utf-8'))
+
+        self.dataSock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.dataSock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        self.dataSock.bind((HOST, dataPort))
+        self.dataSock.listen(5)
+        connection, _address = self.dataSock.accept()
+        print("Client was connected to data channel")
+        
 
 
 def main():
@@ -86,6 +91,7 @@ def main():
     listen_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     listen_sock.bind((HOST, PORT))
     listen_sock.listen(5)
+    
 
     while True:
         connection, _address = listen_sock.accept()
