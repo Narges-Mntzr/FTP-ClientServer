@@ -14,7 +14,7 @@ class Server(Thread):
         self.comSock = comSock  # command channel
         self.address = address
 
-        os.chdir("Files")
+        os.chdir("Files") #FIXME: 
         self.cwd = self.firstLocation = os.getcwd()
         self.update_cwd()
 
@@ -30,7 +30,8 @@ class Server(Thread):
 
                 result = self.run_commands(command, argument)
                 print(result)
-                #self.comSock.send(result.encode())
+                if command != 'DWLD':
+                    self.comSock.send(result.encode())
             except socket.error as e:
                 print(f'{e} recieved.')
 
@@ -84,7 +85,12 @@ class Server(Thread):
         self.open_data_sock()
         file_path = self.firstLocation+self.cwd+argument[0]
         f = open(file_path, 'r')
-        self.dataSock.send(f.read().encode())
+        while True:
+            data = f.read(2048)
+            self.dataSock.send(data.encode('utf-8'))
+            if data == "":
+                break
+
         self.close_data_sock()
         return '200'
 

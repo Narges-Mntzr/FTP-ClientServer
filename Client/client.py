@@ -59,7 +59,6 @@ class FTPclient:
     --------------------------------------------------
          ''')
 
-    # don't test
     def download_file(self, filename, commandStr):
         print('Downloading', filename, 'from the server')
 
@@ -71,9 +70,11 @@ class FTPclient:
 
         try:
             datasock = self.create_connection(self.address, int(portnum))
-            print("Hello Shirin")
-            download = datasock.recv(2048).decode()
-            f.write(download)
+            while True:
+                downloaded = datasock.recv(2048).decode()
+                f.write(downloaded)
+                if not downloaded :
+                    break
             f.close()
             datasock.close()   
         except Exception as e:
@@ -81,18 +82,6 @@ class FTPclient:
             print('Data connection to', self.address, ':', portnum, 'failed')
             f.close()
             datasock.close()                     
-
-        #     while True:
-        #         download = datasock.recv(2048)
-        #         if not download:
-        #             break
-        #         f.write(download)
-        #     f.close()
-        #     datasock.close()
-        # except:
-        #     print('Data connection to', self.address, ':', portnum, 'failed')
-        #     f.close()
-        #     datasock.close()
 
     def close(self):
         self.sock.close()
