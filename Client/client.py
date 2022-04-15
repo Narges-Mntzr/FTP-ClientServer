@@ -72,18 +72,27 @@ class FTPclient:
         try:
             datasock = self.create_connection(self.address, int(portnum))
             print("Hello Shirin")
-
-            while True:
-                download = datasock.recv(2048)
-                if not download:
-                    break
-                f.write(download)
+            download = datasock.recv(2048).decode()
+            f.write(download)
             f.close()
-            datasock.close()
-        except:
+            datasock.close()   
+        except Exception as e:
+            print(f'{e} recieved.')
             print('Data connection to', self.address, ':', portnum, 'failed')
             f.close()
-            datasock.close()
+            datasock.close()                     
+
+        #     while True:
+        #         download = datasock.recv(2048)
+        #         if not download:
+        #             break
+        #         f.write(download)
+        #     f.close()
+        #     datasock.close()
+        # except:
+        #     print('Data connection to', self.address, ':', portnum, 'failed')
+        #     f.close()
+        #     datasock.close()
 
     def close(self):
         self.sock.close()

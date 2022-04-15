@@ -30,19 +30,26 @@ class Server(Thread):
 
                 result = self.run_commands(command, argument)
                 print(result)
-                self.comSock.send(result.encode())
+                #self.comSock.send(result.encode())
             except socket.error as e:
                 print(f'{e} recieved.')
 
             # TODO: call the command based on data
 
     def open_data_sock(self):
-        self.dataSock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.dataSock, self.address = self.serverSock.accept()
+        dataPort = random.randint(3000, 50000)
+        self.comSock.send(str(dataPort).encode('utf-8'))
+
+        self.serverSock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.serverSock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        self.serverSock.bind((HOST, dataPort))
+        self.serverSock.listen(5)
+        self.dataSock, _address = self.serverSock.accept()
+        print("Client was connected to data channel")
 
     def close_data_sock(self):
-        self.dataSock.close()
         self.serverSock.close()
+        self.dataSock.close()
 
     def update_cwd(self):
         self.cwd = os.getcwd()
@@ -70,19 +77,17 @@ class Server(Thread):
             out += ("\tTotal size: " + str(total_size) + "\n")
             return out
         elif command == 'DWLD':
-            self.PASV()
+            return(self.DWLD(argument))
     # Commands -----------
 
-    def PASV(self):
-        dataPort = random.randint(3000, 50000)
-        self.comSock.send(str(dataPort).encode('utf-8'))
+    def DWLD(self,argument):
+        self.open_data_sock()
+        file_path = self.firstLocation+self.cwd+argument[0]
+        f = open(file_path, 'r')
+        self.dataSock.send(f.read().encode())
+        self.close_data_sock()
+        return '200'
 
-        self.dataSock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.dataSock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        self.dataSock.bind((HOST, dataPort))
-        self.dataSock.listen(5)
-        connection, _address = self.dataSock.accept()
-        print("Client was connected to data channel")
         
 
 
