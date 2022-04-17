@@ -1,8 +1,11 @@
+from ast import For
 import socket
 from threading import Thread
 import os
-import time
+from datetime import datetime
 import random
+from tkinter import NONE
+from colorama import Fore, Back, Style
 
 HOST = '127.0.0.1'
 PORT = 2121  # command port
@@ -22,20 +25,18 @@ class Server(Thread):
         while True:
             try:
                 data = self.comSock.recv(2048).decode('utf-8')
-                print('recieved data:', data)
-
                 dataList = data.split(' ')
                 command = dataList[0].upper()
                 argument = dataList[1:]
 
                 result = self.run_commands(command, argument)
-                print(result)
                 if command != 'DWLD':
                     self.comSock.send(result.encode())
+                    self.log('success',f'{command} command DONE.')
+                else:
+                    self.log('success',f'{argument} uploaded.')                    
             except socket.error as e:
-                print(f'{e} recieved.')
-
-            # TODO: call the command based on data
+                self.log('error',f'{e} recieved.')
 
     def open_data_sock(self):
         dataPort = random.randint(3000, 50000)
@@ -46,7 +47,7 @@ class Server(Thread):
         self.serverSock.bind((HOST, dataPort))
         self.serverSock.listen(5)
         self.dataSock, _address = self.serverSock.accept()
-        print("Client was connected to data channel")
+        self.log('success',f'Client connected to data channel:{_address}')
 
     def close_data_sock(self):
         self.serverSock.close()
@@ -60,10 +61,12 @@ class Server(Thread):
     def run_commands(self, command, argument):
         if command == 'PWD':
             return "\t"+self.cwd
+
         elif command == 'CD':
             os.chdir(self.firstLocation+self.cwd+argument[0])
             self.update_cwd()
             return "\t"+self.cwd
+
         elif command == 'LIST':
             out = ""
             total_size = 0
@@ -77,9 +80,9 @@ class Server(Thread):
 
             out += ("\tTotal size: " + str(total_size) + "\n")
             return out
+
         elif command == 'DWLD':
             return(self.DWLD(argument))
-    # Commands -----------
 
     def DWLD(self,argument):
         self.open_data_sock()
@@ -90,12 +93,22 @@ class Server(Thread):
             self.dataSock.send(data)
             if not data:
                 break
-        print()
         self.close_data_sock()
-        return '200'
+        return NONE
 
-        
+    def log(self, type , _msg):
+        time = datetime.now().time()
+        print(Fore.YELLOW + str(time))
+        if type == 'success':
+            print(Back.GREEN + Fore.BLACK + type.upper())
+            print(Style.RESET_ALL)
+            print(Fore.GREEN + _msg)
+        elif type == 'error':
+            print(Back.RED + Fore.BLACK + type.upper())
+            print(Style.RESET_ALL)
+            print(Fore.RED + _msg)
 
+    
 
 def main():
     listen_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
