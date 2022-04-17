@@ -84,10 +84,11 @@ class Server(Thread):
     def DWLD(self,argument):
         self.open_data_sock()
         file_path = self.firstLocation+self.cwd+argument[0]
-        f = open(file_path, 'r')
+        f = open(file_path, 'rb')
         while True:
             data = f.read(2048)
-            self.dataSock.send(data.encode('utf-8'))
+            print(str(data))
+            self.dataSock.send(data)
             if data == "":
                 break
 

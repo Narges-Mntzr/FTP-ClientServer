@@ -1,1 +1,0 @@
-This file is a text file for testing code related to the ftp protocol.

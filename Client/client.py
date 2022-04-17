@@ -62,7 +62,7 @@ class FTPclient:
     def download_file(self, filename, commandStr):
         print('Downloading', filename, 'from the server')
 
-        f = open(filename, 'w')
+        f = open(filename, 'wb')
 
         self.sock.send(commandStr.encode())
         portnum = self.sock.recv(2048).decode()
@@ -71,7 +71,7 @@ class FTPclient:
         try:
             datasock = self.create_connection(self.address, int(portnum))
             while True:
-                downloaded = datasock.recv(2048).decode()
+                downloaded = datasock.recv(2048)
                 f.write(downloaded)
                 if not downloaded :
                     break
