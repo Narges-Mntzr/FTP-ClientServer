@@ -34,7 +34,11 @@ class Server(Thread):
                     self.comSock.send(result.encode())
                     self.log('success',f'{command} command DONE.')
                 else:
-                    self.log('success',f'{argument} uploaded.')                    
+                    if result=="200":
+                        self.log('success',f'{argument} uploaded.')  
+                    elif result=="404":
+                        self.log('error',f'{argument} not found.')  
+
             except socket.error as e:
                 self.log('error',f'{e} recieved.')
 
@@ -87,9 +91,6 @@ class Server(Thread):
     def DWLD(self,argument):
         self.open_data_sock()
             
-        # file_path = self.firstLocation+self.cwd+argument[0]
-        # f = open(file_path, 'rb')
-        
         try:
             file_path = self.firstLocation+self.cwd+argument[0]
             f = open(file_path, 'rb')
@@ -111,12 +112,15 @@ class Server(Thread):
         print(Fore.YELLOW + str(time))
         if type == 'success':
             print(Back.GREEN + Fore.BLACK + type.upper())
-            print(Style.RESET_ALL)
+            print(Style.RESET_ALL,end="")
             print(Fore.GREEN + _msg)
+            print(Style.RESET_ALL,end="")
         elif type == 'error':
             print(Back.RED + Fore.BLACK + type.upper())
-            print(Style.RESET_ALL)
+            print(Style.RESET_ALL,end="")
             print(Fore.RED + _msg)
+            print(Style.RESET_ALL,end="")
+        print()
 
     # def __del__(self):
     #     os.chdir(self.firstLocation)
@@ -133,6 +137,7 @@ def main():
 
     while True:
         connection, _address = listen_sock.accept()
+        print(Style.RESET_ALL,end="")
         print("Client was connected")
         S = Server(connection, _address)
         S.start()
