@@ -87,11 +87,10 @@ class Server(Thread):
         f = open(file_path, 'rb')
         while True:
             data = f.read(2048)
-            print(str(data))
             self.dataSock.send(data)
-            if data == "":
+            if not data:
                 break
-
+        print()
         self.close_data_sock()
         return '200'
 
