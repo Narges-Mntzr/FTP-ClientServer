@@ -34,8 +34,7 @@ class Server(Thread):
                     self.comSock.send(result.encode())
             except socket.error as e:
                 print(f'{e} recieved.')
-
-            # TODO: call the command based on data
+    
 
     def open_data_sock(self):
         dataPort = random.randint(3000, 50000)
@@ -79,20 +78,33 @@ class Server(Thread):
             return out
         elif command == 'DWLD':
             return(self.DWLD(argument))
-    # Commands -----------
 
     def DWLD(self,argument):
         self.open_data_sock()
-        file_path = self.firstLocation+self.cwd+argument[0]
-        f = open(file_path, 'rb')
+            
+        # file_path = self.firstLocation+self.cwd+argument[0]
+        # f = open(file_path, 'rb')
+        
+        try:
+            file_path = self.firstLocation+self.cwd+argument[0]
+            f = open(file_path, 'rb')
+        except:
+            self.dataSock.send("404".encode())
+            self.close_data_sock()
+            return '404'
+        
         while True:
             data = f.read(2048)
             self.dataSock.send(data)
             if not data:
                 break
-        print()
         self.close_data_sock()
         return '200'
+
+    # def __del__(self):
+    #     os.chdir(self.firstLocation)
+    #     os.chdir("..")
+    #     print(os.getcwd())
 
         
 

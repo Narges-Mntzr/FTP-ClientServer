@@ -16,8 +16,6 @@ class FTPclient:
             self.close()
 
     def create_connection(self, address, port):
-        print('Starting connection to', address, ':', port)
-
         sock = socket(AF_INET, SOCK_STREAM)
         sock.connect((address, port))
         print('Connected to', address, ':', port)
@@ -62,26 +60,29 @@ class FTPclient:
     def download_file(self, filename, commandStr):
         print('Downloading', filename, 'from the server')
 
-        f = open(filename, 'wb')
-
         self.sock.send(commandStr.encode())
         portnum = self.sock.recv(2048).decode()
-        print(portnum)
 
         try:
             datasock = self.create_connection(self.address, int(portnum))
-            while True:
-                downloaded = datasock.recv(2048)
-                f.write(downloaded)
-                if not downloaded :
-                    break
-            f.close()
+            
+            downloaded = datasock.recv(2048)
+            if downloaded=="404".encode():
+                print(filename,"does not exist.\n\n")
+            else:
+                f = open(filename, 'wb')
+                while True:
+                    f.write(downloaded)
+                    if not downloaded :
+                        break
+                    downloaded = datasock.recv(2048)
+                    
+                f.close()
+
             datasock.close()   
         except Exception as e:
             print(f'{e} recieved.')
-            print('Data connection to', self.address, ':', portnum, 'failed')
-            f.close()
-            datasock.close()                     
+            print('Data connection to', self.address, ':', portnum, 'failed')                  
 
     def close(self):
         self.sock.close()
