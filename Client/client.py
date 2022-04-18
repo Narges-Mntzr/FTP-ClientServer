@@ -29,6 +29,10 @@ class FTPclient:
 
                 commandList = commandStr.split(' ')
 
+                if commandList[0].upper() not in ['HELP','LIST','DWLD','PWD','CD','QUIT']:
+                    print("Wrong command entered.\n\n")
+                    continue
+
                 if commandList[0].upper() == 'HELP':
                     # This command will show list of commands
                     continue
@@ -68,7 +72,7 @@ class FTPclient:
             
             downloaded = datasock.recv(2048)
             if downloaded=="404".encode():
-                print(filename,"does not exist.\n\n")
+                print(filename,"not found.\n\n")
             else:
                 f = open(filename, 'wb')
                 while True:

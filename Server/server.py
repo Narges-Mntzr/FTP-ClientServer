@@ -1,4 +1,3 @@
-from ast import For
 import socket
 from threading import Thread
 import os
@@ -12,12 +11,12 @@ PORT = 2121  # command port
 
 
 class Server(Thread):
-    def __init__(self, comSock, address):
+    def __init__(self, comSock, address, id):
         Thread.__init__(self)
+        self.id = id
         self.comSock = comSock  # command channel
         self.address = address
 
-        os.chdir("Files") #FIXME: 
         self.cwd = self.firstLocation = os.getcwd()
         self.update_cwd()
 
@@ -31,16 +30,30 @@ class Server(Thread):
 
                 result = self.run_commands(command, argument)
                 if command != 'DWLD':
-                    self.comSock.send(result.encode())
-                    self.log('success',f'{command} command DONE.')
+                    if result == "404":
+                        errorText = f'{argument} not found.'
+                        self.log('error', errorText)
+                        self.comSock.send(errorText.encode())
+                    elif result == "400":
+                        errorText = f'Unable to access this folder.'
+                        self.log('error', errorText)
+                        self.comSock.send(errorText.encode())
+                    else:
+                        self.comSock.send(result.encode())
+                        self.log('success', f'{command} command DONE.')
                 else:
-                    if result=="200":
-                        self.log('success',f'{argument} uploaded.')  
-                    elif result=="404":
-                        self.log('error',f'{argument} not found.')  
+                    if result == "200":
+                        self.log('success', f'{argument} uploaded.')
+                    elif result == "404":
+                        self.log('error', f'{argument} not found.')
 
-            except socket.error as e:
-                self.log('error',f'{e} recieved.')
+            except AttributeError as e:
+                self.log('error', f'Client{self.id} was disconnected')
+                break
+
+            except Exception as e:
+                self.log('error', f'{e} recieved.')
+                break
 
     def open_data_sock(self):
         dataPort = random.randint(3000, 50000)
@@ -51,7 +64,7 @@ class Server(Thread):
         self.serverSock.bind((HOST, dataPort))
         self.serverSock.listen(5)
         self.dataSock, _address = self.serverSock.accept()
-        self.log('success',f'Client connected to data channel:{_address}')
+        self.log('success', f'Client connected to data channel:{_address}')
 
     def close_data_sock(self):
         self.serverSock.close()
@@ -67,9 +80,15 @@ class Server(Thread):
             return "\t"+self.cwd
 
         elif command == 'CD':
-            os.chdir(self.firstLocation+self.cwd+argument[0])
-            self.update_cwd()
-            return "\t"+self.cwd
+            try:
+                if self.cwd == '/' and argument[0] == '..':
+                    return '400'
+
+                os.chdir(self.firstLocation+self.cwd+argument[0])
+                self.update_cwd()
+                return "\t"+self.cwd
+            except:
+                return '404'
 
         elif command == 'LIST':
             out = ""
@@ -88,9 +107,9 @@ class Server(Thread):
         elif command == 'DWLD':
             return(self.DWLD(argument))
 
-    def DWLD(self,argument):
+    def DWLD(self, argument):
         self.open_data_sock()
-            
+
         try:
             file_path = self.firstLocation+self.cwd+argument[0]
             f = open(file_path, 'rb')
@@ -98,7 +117,7 @@ class Server(Thread):
             self.dataSock.send("404".encode())
             self.close_data_sock()
             return '404'
-        
+
         while True:
             data = f.read(2048)
             self.dataSock.send(data)
@@ -107,39 +126,40 @@ class Server(Thread):
         self.close_data_sock()
         return '200'
 
-    def log(self, type , _msg):
+    def log(self, type, _msg):
         time = datetime.now().time()
         print(Fore.YELLOW + str(time))
+
         if type == 'success':
             print(Back.GREEN + Fore.BLACK + type.upper())
-            print(Style.RESET_ALL,end="")
-            print(Fore.GREEN + _msg)
-            print(Style.RESET_ALL,end="")
+            print(Style.RESET_ALL, end="")
+            print(Fore.GREEN + f'Client{self.id}: ' + _msg)
+
         elif type == 'error':
             print(Back.RED + Fore.BLACK + type.upper())
-            print(Style.RESET_ALL,end="")
-            print(Fore.RED + _msg)
-            print(Style.RESET_ALL,end="")
-        print()
+            print(Style.RESET_ALL, end="")
+            print(Fore.RED + f'Client{self.id}: ' + _msg)
+        print(Style.RESET_ALL)
 
-    # def __del__(self):
-    #     os.chdir(self.firstLocation)
-    #     os.chdir("..")
-    #     print(os.getcwd())
-    
+    def __del__(self):
+        self.comSock.close()
+
 
 def main():
+    os.chdir("Files")
+    client_num = 1
+
     listen_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     listen_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     listen_sock.bind((HOST, PORT))
     listen_sock.listen(5)
-    
 
     while True:
         connection, _address = listen_sock.accept()
-        print(Style.RESET_ALL,end="")
-        print("Client was connected")
-        S = Server(connection, _address)
+        print(Style.RESET_ALL, end="")
+        print(f'Client{client_num} was connected\n')
+        S = Server(connection, _address, client_num)
+        client_num += 1
         S.start()
 
 
