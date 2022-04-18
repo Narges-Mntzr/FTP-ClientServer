@@ -70,17 +70,16 @@ class FTPclient:
         try:
             datasock = self.create_connection(self.address, int(portnum))
             
-            downloaded = datasock.recv(2048)
+            downloaded = datasock.recv(3)
+            print(downloaded.decode())
             if downloaded=="404".encode():
                 print(filename,"not found.\n\n")
             else:
+                size = int(datasock.recv(32).decode())
+                print(size)
+                downloaded = datasock.recv(size)
                 f = open(filename, 'wb')
-                while True:
-                    f.write(downloaded)
-                    if not downloaded :
-                        break
-                    downloaded = datasock.recv(2048)
-                    
+                f.write(downloaded)
                 f.close()
 
             datasock.close()   

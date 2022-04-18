@@ -3,6 +3,7 @@ from threading import Thread
 import os
 from datetime import datetime
 import random
+from time import sleep
 from tkinter import NONE
 from colorama import Fore, Back, Style
 
@@ -47,9 +48,9 @@ class Server(Thread):
                     elif result == "404":
                         self.log('error', f'{argument} not found.')
 
-            except AttributeError as e:
-                self.log('error', f'Client{self.id} was disconnected')
-                break
+            # except AttributeError as e:
+            #     self.log('error', f'Client{self.id} was disconnected')
+            #     break
 
             except Exception as e:
                 self.log('error', f'{e} recieved.')
@@ -113,16 +114,18 @@ class Server(Thread):
         try:
             file_path = self.firstLocation+self.cwd+argument[0]
             f = open(file_path, 'rb')
+            self.dataSock.send("200".encode())
         except:
             self.dataSock.send("404".encode())
             self.close_data_sock()
             return '404'
+        
 
-        while True:
-            data = f.read(2048)
-            self.dataSock.send(data)
-            if not data:
-                break
+        data = f.read()
+        self.dataSock.send(str(len(data)).encode())
+        sleep(0.5)
+        self.dataSock.send(data)
+        
         self.close_data_sock()
         return '200'
 
