@@ -1,4 +1,5 @@
 from socket import *
+import os
 
 HOST = '127.0.0.1'
 PORT = 2121
@@ -11,9 +12,20 @@ class FTPclient:
 
         try:
             self.sock = self.create_connection(address, port)
+            self.get_id()
+            self.dir = self.create_directory()
         except:
             print('Connection to', self.address, ':', self.port, 'failed')
             self.close()
+
+    def create_directory(self):
+        parent_dir = os.getcwd()
+        path = os.path.join(parent_dir, self.id)
+        os.mkdir(path)
+        os.chdir(path)
+
+    def get_id(self):
+        self.id = self.sock.recv(10).decode()
 
     def create_connection(self, address, port):
         sock = socket(AF_INET, SOCK_STREAM)
@@ -30,7 +42,7 @@ class FTPclient:
                 commandList = commandStr.split(' ')
 
                 if commandList[0].upper() not in ['HELP','LIST','DWLD','PWD','CD','QUIT']:
-                    print("Wrong command entered.\n\n")
+                    print("Unknown command.\n\n")
                     continue
 
                 if commandList[0].upper() == 'HELP':

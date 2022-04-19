@@ -20,6 +20,7 @@ class Server(Thread):
 
         self.cwd = self.firstLocation = os.getcwd()
         self.update_cwd()
+        self.send_id()
 
     def run(self):  # override run method
         while True:
@@ -35,13 +36,17 @@ class Server(Thread):
                         errorText = f'{argument} not found.'
                         self.log('error', errorText)
                         self.comSock.send(errorText.encode())
+                    
                     elif result == "400":
                         errorText = f'Unable to access this folder.'
                         self.log('error', errorText)
                         self.comSock.send(errorText.encode())
+                    
                     else:
                         self.comSock.send(result.encode())
                         self.log('success', f'{command} command DONE.')
+                
+                
                 else:
                     if result == "200":
                         self.log('success', f'{argument} uploaded.')
@@ -144,6 +149,9 @@ class Server(Thread):
             print(Fore.RED + f'Client{self.id}: ' + _msg)
         print(Style.RESET_ALL)
 
+    def send_id(self):
+        self.comSock.send(str(self.id).encode())
+   
     def __del__(self):
         self.comSock.close()
 
