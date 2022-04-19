@@ -29,24 +29,16 @@ class Server(Thread):
                 dataList = data.split(' ')
                 command = dataList[0].upper()
                 argument = dataList[1:]
+                result, text = self.run_commands(command, argument)
 
-                result = self.run_commands(command, argument)
                 if command != 'DWLD':
-                    if result == "404":
-                        errorText = f'{argument} not found.'
-                        self.log('error', errorText)
-                        self.comSock.send(errorText.encode())
-                    
-                    elif result == "400":
-                        errorText = f'Unable to access this folder.'
-                        self.log('error', errorText)
-                        self.comSock.send(errorText.encode())
-                    
+                    if result in ["400", "404"]:
+                        self.log('error', text)
+                        self.comSock.send((result + text).encode())
                     else:
-                        self.comSock.send(result.encode())
                         self.log('success', f'{command} command DONE.')
-                
-                
+                        self.comSock.send((result+text).encode())
+
                 else:
                     if result == "200":
                         self.log('success', f'{argument} uploaded.')
@@ -83,18 +75,18 @@ class Server(Thread):
 
     def run_commands(self, command, argument):
         if command == 'PWD':
-            return "\t"+self.cwd
+            return "200", self.cwd
 
         elif command == 'CD':
             try:
                 if self.cwd == '/' and argument[0] == '..':
-                    return '400'
+                    return '400', "Unable to access this folder."
 
                 os.chdir(self.firstLocation+self.cwd+argument[0])
                 self.update_cwd()
-                return "\t"+self.cwd
+                return "200", self.cwd
             except:
-                return '404'
+                return '404', f'{argument[0]} not found.'
 
         elif command == 'LIST':
             out = ""
@@ -103,15 +95,15 @@ class Server(Thread):
             for file in ls:
                 total_size += os.path.getsize(self.firstLocation+self.cwd+file)
                 if os.path.isdir(self.firstLocation+self.cwd+file):
-                    out += ("\t> " + file + "\n")
+                    out += ("> " + file + "\n")
                 else:
-                    out += ("\t" + file + "\n")
+                    out += (file + "\n")
 
-            out += ("\tTotal size: " + str(total_size) + "\n")
-            return out
+            out += ("Total size: " + str(total_size))
+            return "200", out
 
         elif command == 'DWLD':
-            return(self.DWLD(argument))
+            return "200", self.DWLD(argument)
 
     def DWLD(self, argument):
         self.open_data_sock()
@@ -124,13 +116,12 @@ class Server(Thread):
             self.dataSock.send("404".encode())
             self.close_data_sock()
             return '404'
-        
 
         data = f.read()
         self.dataSock.send(str(len(data)).encode())
         sleep(0.5)
         self.dataSock.send(data)
-        
+
         self.close_data_sock()
         return '200'
 
@@ -151,7 +142,7 @@ class Server(Thread):
 
     def send_id(self):
         self.comSock.send(str(self.id).encode())
-   
+
     def __del__(self):
         self.comSock.close()
 
