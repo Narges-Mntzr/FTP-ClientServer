@@ -101,7 +101,7 @@ class FTPclient:
             datasock.close()   
         except Exception as e:
             self.log('error',f'{e} recieved.')
-            print('error','Data connection to '+ str(self.address) + ' : ' + str(portnum) + 'failed')                  
+            self.log('error','Data connection to '+ str(self.address) + ' : ' + str(portnum) + 'failed')                  
 
     def close(self):
         self.sock.close()
