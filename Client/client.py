@@ -1,4 +1,6 @@
 from socket import *
+from colorama import Fore, Back, Style
+from datetime import datetime
 import os
 
 HOST = '127.0.0.1'
@@ -15,7 +17,7 @@ class FTPclient:
             self.get_id()
             self.dir = self.create_directory()
         except:
-            print('Connection to', self.address, ':', self.port, 'failed')
+            self.log('error', 'Connection to '+ str(self.address) + ' : '+ str(self.port) + ' failed')
             self.close()
 
     def create_directory(self):
@@ -30,7 +32,7 @@ class FTPclient:
     def create_connection(self, address, port):
         sock = socket(AF_INET, SOCK_STREAM)
         sock.connect((address, port))
-        print('Connected to', address, ':', port)
+        self.log('success','Connected to '+ str(address) + ' : '+ str(port))
         return sock
 
     def start(self):
@@ -42,7 +44,7 @@ class FTPclient:
                 commandList = commandStr.split(' ')
 
                 if commandList[0].upper() not in ['HELP','LIST','DWLD','PWD','CD','QUIT']:
-                    print("Unknown command.\n\n")
+                    self.log('error',"Unknown command.\n\n")
                     continue
 
                 if commandList[0].upper() == 'HELP':
@@ -56,12 +58,14 @@ class FTPclient:
                     self.sock.send(commandStr.encode())
                     data = self.sock.recv(2048).decode()
                     print(data, "\n\n")
+                    #TODO: add log here
+
         except Exception as e:
-            print(f'{e} recieved.')
+            self.log('error',f'{e} recieved.')
 
     def show_commands(self):
-        print('''    -------------------------------------------------
-    -------------------------------------------------
+        print(Fore.CYAN+'-------------------------------------------------')
+        print(Fore.MAGENTA+'''
         Call one of the following functions:
         1.HELP               : Show this commands
         2.LIST               : List files
@@ -69,12 +73,12 @@ class FTPclient:
         4.CD dir_name        : Change directory
         5.DWLD dir_name      : Download file
         6.QUIT               : Exit
-    --------------------------------------------------
-    --------------------------------------------------
          ''')
+        print(Fore.CYAN+'-------------------------------------------------')
+        print(Style.RESET_ALL, end="")
 
     def download_file(self, filename, commandStr):
-        print('Downloading', filename, 'from the server')
+        self.log('success','Downloading '+ filename+ ' from the server')
 
         self.sock.send(commandStr.encode())
         portnum = self.sock.recv(2048).decode()
@@ -85,7 +89,7 @@ class FTPclient:
             downloaded = datasock.recv(3)
             print(downloaded.decode())
             if downloaded=="404".encode():
-                print(filename,"not found.\n\n")
+                self.log('error',filename+" not found.\n\n")
             else:
                 size = int(datasock.recv(32).decode())
                 print(size)
@@ -96,13 +100,29 @@ class FTPclient:
 
             datasock.close()   
         except Exception as e:
-            print(f'{e} recieved.')
-            print('Data connection to', self.address, ':', portnum, 'failed')                  
+            self.log('error',f'{e} recieved.')
+            print('error','Data connection to '+ str(self.address) + ' : ' + str(portnum) + 'failed')                  
 
     def close(self):
         self.sock.close()
         print('FTP client terminating...')
         quit()
+ 
+    def log(self, type, _msg):
+        time = datetime.now().time()
+        print(Fore.YELLOW + str(time))
+
+        if type == 'success':
+            print(Back.GREEN + Fore.BLACK + type.upper())
+            print(Style.RESET_ALL, end="")
+            print(Fore.GREEN +  _msg)
+
+        elif type == 'error':
+            print(Back.RED + Fore.BLACK + type.upper())
+            print(Style.RESET_ALL, end="")
+            print(Fore.RED + _msg)
+       
+        print(Style.RESET_ALL)    
 
 
 ftpClient = FTPclient(HOST, PORT)
