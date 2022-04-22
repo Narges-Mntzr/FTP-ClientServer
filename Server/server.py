@@ -12,13 +12,14 @@ PORT = 2121  # command port
 
 
 class Server(Thread):
-    def __init__(self, comSock, address, id):
+    def __init__(self, comSock, address, id, firstLocation):
         Thread.__init__(self)
         self.id = id
         self.comSock = comSock  # command channel
         self.address = address
 
-        self.cwd = self.firstLocation = os.getcwd()
+        self.cwd = self.firstLocation = firstLocation
+        os.chdir(self.firstLocation)
         self.update_cwd()
         self.send_id()
 
@@ -149,6 +150,7 @@ class Server(Thread):
 
 def main():
     os.chdir("Files")
+    firstLocation = os.getcwd()
     client_num = 1
 
     listen_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -160,7 +162,7 @@ def main():
         connection, _address = listen_sock.accept()
         print(Style.RESET_ALL, end="")
         print(f'Client{client_num} was connected\n')
-        S = Server(connection, _address, client_num)
+        S = Server(connection, _address, client_num, firstLocation)
         client_num += 1
         S.start()
 
