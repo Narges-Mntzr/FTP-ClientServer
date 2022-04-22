@@ -3,15 +3,14 @@ from colorama import Fore, Back, Style
 from datetime import datetime
 import os
 
-HOST = '127.0.0.1'
-PORT = 2121
+HOST = '2.tcp.ngrok.io'
+PORT = 14572
 
 
 class FTPclient:
     def __init__(self, address, port):
         self.address = address
         self.port = port
-
         try:
             self.sock = self.create_connection(address, port)
             self.get_id()
@@ -84,11 +83,13 @@ class FTPclient:
         self.log('success', 'Downloading ' + filename + ' from the server')
 
         self.sock.send(commandStr.encode())
-        portnum = self.sock.recv(2048).decode()
+        x = self.sock.recv(2048).decode().split('"')[1]
+        x = x.split(':')
+        host = x[1][2:]
+        portnum = int(x[2])
 
         try:
-            datasock = self.create_connection(self.address, int(portnum))
-
+            datasock = self.create_connection(host, int(portnum))
             downloaded = datasock.recv(3)
             if downloaded == "404".encode():
                 self.log('error', filename+" not found.")
