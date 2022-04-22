@@ -118,15 +118,12 @@ class FTPclient:
         print(Fore.YELLOW + str(time))
 
         if type == 'success':
-            print(Back.GREEN + Fore.BLACK + type.upper())
-            print(Style.RESET_ALL, end="")
-            print(Fore.GREEN + _msg, end="")
+            print('\033[42m' + Fore.BLACK + type.upper()+'\033[0m')
+            print(Fore.GREEN + f'Client{self.id}: ' + _msg)
 
         elif type == 'error':
-            print(Back.RED + Fore.BLACK + type.upper())
-            print(Style.RESET_ALL, end="")
-            print(Fore.RED + _msg, end="")
-
+            print('\033[41m' + Fore.BLACK + type.upper()+'\033[0m')
+            print(Fore.RED + f'Client{self.id}: ' + _msg)
         print(Style.RESET_ALL)
 
 
