@@ -1,11 +1,10 @@
 from socket import *
-from time import sleep
 from colorama import Fore, Back, Style
 from datetime import datetime
 import os
 
-HOST = '6.tcp.ngrok.io'
-PORT = 19447
+HOST = '4.tcp.ngrok.io'
+PORT = 13930
 
 class FTPclient:
     def __init__(self, address, port):
@@ -18,7 +17,8 @@ class FTPclient:
         except:
             self.log('error', 'Connection to ' + str(self.address) +
                      ' : ' + str(self.port) + ' failed')
-            self.close()
+            print('FTP client terminating...')
+            quit()
 
     def create_directory(self):
         parent_dir = os.getcwd()
@@ -122,17 +122,15 @@ class FTPclient:
         print(Fore.YELLOW + str(time))
 
         if type == 'success':
-            print(Back.GREEN + Fore.BLACK + type.upper())
-            print(Style.RESET_ALL, end="")
+            print('\033[42m' + Fore.BLACK + type.upper()+'\033[0m')
             print(Fore.GREEN + _msg, end="")
 
         elif type == 'error':
-            print(Back.RED + Fore.BLACK + type.upper())
-            print(Style.RESET_ALL, end="")
-            print(Fore.RED + _msg, end="")
+            print('\033[41m' + Fore.BLACK + type.upper()+'\033[0m')
+            print(Fore.RED + _msg + Style.RESET_ALL, end="")
 
         print(Style.RESET_ALL)
 
-
 ftpClient = FTPclient(HOST, PORT)
 ftpClient.start()
+

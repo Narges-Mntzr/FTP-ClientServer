@@ -4,9 +4,8 @@ from threading import Thread
 import os
 from datetime import datetime
 import random
-from time import sleep
 from tkinter import NONE
-from colorama import Fore, Back, Style
+from colorama import Fore, Style
 
 HOST = '127.0.0.1'
 PORT = 2121  # command port
@@ -135,13 +134,11 @@ class Server(Thread):
         print(Fore.YELLOW + str(time))
 
         if type == 'success':
-            print(Back.GREEN + Fore.BLACK + type.upper())
-            print(Style.RESET_ALL, end="")
+            print('\033[42m' + Fore.BLACK + type.upper()+'\033[0m')
             print(Fore.GREEN + f'Client{self.id}: ' + _msg)
 
         elif type == 'error':
-            print(Back.RED + Fore.BLACK + type.upper())
-            print(Style.RESET_ALL, end="")
+            print('\033[41m' + Fore.BLACK + type.upper()+'\033[0m')
             print(Fore.RED + f'Client{self.id}: ' + _msg)
         print(Style.RESET_ALL)
 
