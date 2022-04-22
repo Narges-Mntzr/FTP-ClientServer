@@ -1,8 +1,11 @@
 from socket import *
+from time import sleep
 from colorama import Fore, Back, Style
 from datetime import datetime
 import os
 
+# HOST = '0.tcp.eu.ngrok.io'
+# PORT = 15464
 HOST = '127.0.0.1'
 PORT = 2121
 
@@ -17,13 +20,15 @@ class FTPclient:
             self.get_id()
             self.dir = self.create_directory()
         except:
-            self.log('error', 'Connection to '+ str(self.address) + ' : '+ str(self.port) + ' failed')
+            self.log('error', 'Connection to ' + str(self.address) +
+                     ' : ' + str(self.port) + ' failed')
             self.close()
 
     def create_directory(self):
         parent_dir = os.getcwd()
         path = os.path.join(parent_dir, self.id)
-        os.mkdir(path)
+        if self.id not in os.listdir():
+            os.mkdir(path)
         os.chdir(path)
 
     def get_id(self):
@@ -32,7 +37,7 @@ class FTPclient:
     def create_connection(self, address, port):
         sock = socket(AF_INET, SOCK_STREAM)
         sock.connect((address, port))
-        self.log('success','Connected to '+ str(address) + ' : '+ str(port))
+        self.log('success', 'Connected to ' + str(address) + ' : ' + str(port))
         return sock
 
     def start(self):
@@ -61,7 +66,6 @@ class FTPclient:
                         self.log('success', data[3:])
                     else:
                         self.log('error', data[3:])
-                    # TODO: add log here
 
         except Exception as e:
             self.log('error', f'{e} recieved.')
