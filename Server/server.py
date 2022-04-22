@@ -42,13 +42,9 @@ class Server(Thread):
 
                 else:
                     if result == "200":
-                        self.log('success', f'{argument} uploaded.')
+                        self.log('success', text)
                     elif result == "404":
-                        self.log('error', f'{argument} not found.')
-
-            # except AttributeError as e:
-            #     self.log('error', f'Client{self.id} was disconnected')
-            #     break
+                        self.log('error', text)
 
             except Exception as e:
                 self.log('error', f'{e} recieved.')
@@ -81,10 +77,14 @@ class Server(Thread):
 
         elif command == 'CD':
             try:
-                if self.cwd == '/' and argument[0] == '..':
-                    return '400', "Unable to access this folder."
-
+                preCwd = self.firstLocation+self.cwd
                 os.chdir(self.firstLocation+self.cwd+argument[0])
+                
+                if not os.getcwd().startswith(self.firstLocation):
+                    os.chdir(preCwd)
+                    self.update_cwd()
+                    return '400', "Unable to access this folder."
+                
                 self.update_cwd()
                 return "200", self.cwd
             except:
@@ -105,7 +105,7 @@ class Server(Thread):
             return "200", out
 
         elif command == 'DWLD':
-            return "200", self.DWLD(argument)
+            return self.DWLD(argument)
 
     def DWLD(self, argument):
         self.open_data_sock()
@@ -117,7 +117,7 @@ class Server(Thread):
         except:
             self.dataSock.send("404".encode())
             self.close_data_sock()
-            return '404'
+            return '404', f'{argument} not found.'
 
         data = f.read()
         self.dataSock.send(str(len(data)).encode())
@@ -125,7 +125,7 @@ class Server(Thread):
         self.dataSock.send(data)
 
         self.close_data_sock()
-        return '200'
+        return '200', f'{argument} uploaded.'
 
     def log(self, type, _msg):
         time = datetime.now().time()
