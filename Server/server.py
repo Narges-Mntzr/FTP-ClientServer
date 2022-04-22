@@ -53,8 +53,8 @@ class Server(Thread):
 
     def open_data_sock(self):
         dataPort = random.randint(3000, 50000)
-        data_tunnel = ngrok.connect(dataPort,'tcp')
-        self.comSock.send(str(data_tunnel).encode('utf-8'))
+        self.data_tunnel = ngrok.connect(dataPort,'tcp')
+        self.comSock.send(str(self.data_tunnel).encode('utf-8'))
 
         self.serverSock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.serverSock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -64,6 +64,7 @@ class Server(Thread):
         self.log('success', f'Client connected to data channel:{_address}')
 
     def close_data_sock(self):
+        ngrok.disconnect(self.data_tunnel)
         self.serverSock.close()
         self.dataSock.close()
 
@@ -120,10 +121,11 @@ class Server(Thread):
             self.close_data_sock()
             return '404', f'{argument} not found.'
 
-        data = f.read()
-        self.dataSock.send(str(len(data)).encode())
-        sleep(0.5)
-        self.dataSock.send(data)
+        while True:
+            data = f.read(2048)
+            self.dataSock.send(data)
+            if not data:
+                break
 
         self.close_data_sock()
         return '200', f'{argument} uploaded.'
