@@ -1,4 +1,5 @@
 import socket
+from pyngrok import ngrok
 from threading import Thread
 import os
 from datetime import datetime
@@ -52,7 +53,8 @@ class Server(Thread):
 
     def open_data_sock(self):
         dataPort = random.randint(3000, 50000)
-        self.comSock.send(str(dataPort).encode('utf-8'))
+        data_tunnel = ngrok.connect(dataPort,'tcp')
+        self.comSock.send(str(data_tunnel).encode('utf-8'))
 
         self.serverSock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.serverSock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -151,7 +153,12 @@ class Server(Thread):
 def main():
     os.chdir("Files")
     firstLocation = os.getcwd()
-    client_num = 1
+
+    ngrok.set_auth_token("286v8HrxqAl9O0Cg9d2aqyMaFG0_6ggrottX6UzwQxwCPyZfV")
+    ssh_tunnel = ngrok.connect(2121,'tcp')
+    print(ssh_tunnel)
+
+    client_Id = 1
 
     listen_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     listen_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -161,9 +168,9 @@ def main():
     while True:
         connection, _address = listen_sock.accept()
         print(Style.RESET_ALL, end="")
-        print(f'Client{client_num} was connected\n')
-        S = Server(connection, _address, client_num, firstLocation)
-        client_num += 1
+        print(f'Client{client_Id} was connected\n')
+        S = Server(connection, _address, client_Id, firstLocation)
+        client_Id += 1
         S.start()
 
 
